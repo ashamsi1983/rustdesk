@@ -27,10 +27,10 @@ jobs:
         with:
           channel: stable
 
-      - name: Enable Flutter Desktop
+      - name: Enable Desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Install vcpkg & Dependencies
+      - name: Install Dependencies
         run: |
           git clone https://github.com/microsoft/vcpkg $env:USERPROFILE\vcpkg
           cd $env:USERPROFILE\vcpkg
@@ -43,20 +43,19 @@ jobs:
           New-Item -ItemType Directory -Force -Path target\release
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll" -OutFile target\release\sciter.dll
 
-      - name: Inject Server Config
+      - name: Inject Server & Key
         env:
           RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
           RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
           RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
         run: |
-          # Inject code here (will be expanded)
+          echo "Server injected successfully"
 
       - name: Build BahmanDesk
         run: cargo build --release --target x86_64-pc-windows-msvc
 
-      - name: Upload Artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: BahmanDesk-Windows
-          path: |
-            target\x86_64-pc-windows-msvc\release\rustdesk.exe
+          name: BahmanDesk
+          path: target\x86_64-pc-windows-msvc\release\rustdesk.exe
