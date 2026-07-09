@@ -1,0 +1,62 @@
+name: Build BahmanDesk
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Flutter Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install vcpkg & Dependencies
+        run: |
+          git clone https://github.com/microsoft/vcpkg $env:USERPROFILE\vcpkg
+          cd $env:USERPROFILE\vcpkg
+          .\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=$env:USERPROFILE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+          .\vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
+
+      - name: Download Sciter
+        run: |
+          New-Item -ItemType Directory -Force -Path target\release
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll" -OutFile target\release\sciter.dll
+
+      - name: Inject Server Config
+        env:
+          RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+          RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
+          RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
+        run: |
+          # Inject code here (will be expanded)
+
+      - name: Build BahmanDesk
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BahmanDesk-Windows
+          path: |
+            target\x86_64-pc-windows-msvc\release\rustdesk.exe
