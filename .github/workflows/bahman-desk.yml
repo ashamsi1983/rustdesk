@@ -49,13 +49,14 @@ jobs:
           RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
           RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
         run: |
-          echo "Server injected successfully"
+          echo "Server Config Injected Successfully"
 
       - name: Build BahmanDesk
         run: cargo build --release --target x86_64-pc-windows-msvc
 
-      - name: Upload
+      - name: Upload BahmanDesk
         uses: actions/upload-artifact@v4
         with:
-          name: BahmanDesk
-          path: target\x86_64-pc-windows-msvc\release\rustdesk.exe
+          name: BahmanDesk-Windows
+          path: |
+            target\x86_64-pc-windows-msvc\release\rustdesk.exe
